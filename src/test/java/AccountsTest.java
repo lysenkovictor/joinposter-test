@@ -73,7 +73,7 @@ public class AccountsTest extends BaseTest {
             dataProvider = "getDateAccount"
     )
     public void a_1_createAccount(Account account, AccountExpectedResult accountExpectedResult) {
-        addStepToTheReport("Выпоолнить переход на страницу  Финансы-> Счета");
+        addStepToTheReport("Выполнить переход на страницу  Финансы-> Счета");
         AccountsMainPage accountsMainPage = financeMenuPage.openAccountsMainPage();
         accountsMainPage.deleteAllAccount();
 
