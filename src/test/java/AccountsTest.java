@@ -20,7 +20,7 @@ import static org.testng.Assert.assertTrue;
 /**
  * Created by victor on 01.11.2017.
  */
-public class AccountsTest extends BaseTest{
+public class AccountsTest extends BaseTest {
 
     private FinanceMenuPage financeMenuPage = new FinanceMenuPage();
     private UtilMethod utilMethod = new UtilMethod();
@@ -37,9 +37,9 @@ public class AccountsTest extends BaseTest{
                                 .rateAcquiring("100")
                                 .build(),
 
-                        AccountExpectedResult.builder()
-                                .balanceTotal("1900")
-                                .countAccount("1").build()
+                                AccountExpectedResult.builder()
+                                        .balanceTotal("1900")
+                                        .countAccount("1").build()
                         }
                 };
     }
@@ -69,14 +69,13 @@ public class AccountsTest extends BaseTest{
     }
 
 
-
     @Test(
-            dataProvider = "getDateAccount",
-            dependsOnMethods="deleteAllAccountTest"
+            dataProvider = "getDateAccount"
     )
     public void a_1_createAccount(Account account, AccountExpectedResult accountExpectedResult) {
         addStepToTheReport("Выпоолнить переход на страницу  Финансы-> Счета");
         AccountsMainPage accountsMainPage = financeMenuPage.openAccountsMainPage();
+        accountsMainPage.deleteAllAccount();
 
         addStepToTheReport("Нажать на кнопку: Добавить счет ");
         AddAccountPage addAccountPage = accountsMainPage.clickButtonAddAccount();
@@ -123,10 +122,10 @@ public class AccountsTest extends BaseTest{
 
 
     @Test(
-            dependsOnMethods="deleteAllAccountTest"
+            dependsOnMethods = "deleteAllAccountTest"
     )
     public void a_2_createAccount() {
-       Account account1 = Account.builder()
+        Account account1 = Account.builder()
                 .nameAccount(utilMethod.getCurrentDateTime())
                 .typeAccount(configProperties.NONCASH_ACCOUNT())
                 .currencyAccount("Гривна")
@@ -165,30 +164,44 @@ public class AccountsTest extends BaseTest{
         addStepToTheReport("Нажать на кнопку: Добавить счет");
         addAccountPage.clickButtonSubmit();
 
-        addStepToTheReport("Проверить, что баланс равен:");
-        System.out.println(accountsMainPage.getTextBalanceOnAccounts());
+        addStepToTheReport("Проверить, что отображается верный баланс");
         String str = utilMethod.getDigitsFromString(accountsMainPage.getTextBalanceOnAccounts());
         assertTrue(new BigDecimal(str)
                 .compareTo(new BigDecimal(Double.parseDouble(account1.getBalanceStart()) + Double.parseDouble(account2.getBalanceStart()))) == 0);
-        addStepToTheReport("Открыть вновь созданный счет и посмотреть, что все данные сохранены из предусловия");
+
+        addStepToTheReport("Открыть вновь созданный счет и посмотреть, что данные сохранены из предусловия");
         EditAccountPage editAccountPage = accountsMainPage.clickLinkEdit(account2.getNameAccount());
 
         addStepToTheReport("Проверить, что выбран тип счета из предусловия : " + account2.getTypeAccount());
         assertThat(editAccountPage.getSelectedTypeAccount(), equalTo(account2.getTypeAccount()));
 
-
     }
 
-    @Test
-    public void test() {
-       System.out.println(utilMethod.getDigitsFromString("Баланс: 0,00 ₴"));
-    };
 
-    @Test (
+    @Test(
+            dataProvider = "getDateAccountForTestDelete",
+            dependsOnMethods = {"deleteAllAccountTest", "a_3_createAccountTestForDelete"}
+    )
+    public void a_2_deleteAccountTest(Account account) {
+        addStepToTheReport("Выполнить переход на страницу  Финансы-> Счета");
+        AccountsMainPage accountsMainPage = financeMenuPage.openAccountsMainPage();
+
+        addStepToTheReport("Выполнить удаление счета");
+        accountsMainPage.deleteSelectedAccount(account.getNameAccount());
+
+        addStepToTheReport("Подвердить удаление счета");
+        accountsMainPage.clickButtonConfirmAlert();
+
+        addStepToTheReport("Проверить, что счет удален:  " + account.getNameAccount());
+        accountsMainPage.getNameAccount(account.getNameAccount()).shouldNotHave(visible);
+    }
+
+
+    @Test(
             dataProvider = "getDateAccountForTestDelete"
     )
     public void a_3_createAccountTestForDelete(Account account) {
-        addStepToTheReport("Выпоолнить переход на страницу  Финансы-> Счета");
+        addStepToTheReport("Выполнить переход на страницу  Финансы-> Счета");
         AccountsMainPage accountsMainPage = financeMenuPage.openAccountsMainPage();
 
         addStepToTheReport("Нажать на кнопку: Добавить счет ");
@@ -199,30 +212,12 @@ public class AccountsTest extends BaseTest{
 
         addStepToTheReport("Проверить, что количество счетов изменилось");
         assertThat(
-                "Должно быть другое количество счетов в счетчике",
+                "Неправильный текст сообщения",
                 accountsMainPage.getTextAlertMassageSuccess(),
                 equalTo("Счет успешно добавлен")
         );
     }
 
-
-    @Test(
-            dataProvider = "getDateAccountForTestDelete",
-            dependsOnMethods={"deleteAllAccountTest","a_3_createAccountTestForDelete"}
-    )
-    public void a_2_deleteAccountTest(Account account) {
-        addStepToTheReport("Выпоолнить переход на страницу  Финансы-> Счета");
-        AccountsMainPage accountsMainPage = financeMenuPage.openAccountsMainPage();
-
-        addStepToTheReport("Выполнить удаление счета");
-        accountsMainPage.deleteSelectedAccount(account.getNameAccount());
-
-        addStepToTheReport("Подвердить удаление счета");
-        accountsMainPage.clickButtonConfirmAlert();
-
-        addStepToTheReport("Проверить, что счет удален:  " +  account.getNameAccount());
-        accountsMainPage.getNameAccount(account.getNameAccount()).shouldNotHave(visible);
-    }
 
     @Test
     public void deleteAllAccountTest() {
