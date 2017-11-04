@@ -1,5 +1,8 @@
 import entities.Account;
 import io.qameta.allure.Description;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Story;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import pages.accounts.AccountsMainPage;
@@ -20,6 +23,8 @@ import static org.testng.Assert.assertTrue;
 /**
  * Created by victor on 01.11.2017.
  */
+
+@Feature("Работа со счетами в пункте меню Финансы->Счета")
 public class AccountsTest extends BaseTest {
 
     private FinanceMenuPage financeMenuPage = new FinanceMenuPage();
@@ -52,18 +57,27 @@ public class AccountsTest extends BaseTest {
     }
 
 
-    @Test
-    @Description("Проверить добавление счета с типом: \"Безналичный рассчет\"")
+    @BeforeMethod(dependsOnGroups = "Account")
+    public void preconditionTestMethod() {
+        addStepToTheReport("Выполнить переход на страницу  Финансы-> Счета");
+        preconditionClearData();
+    }
+
+    public void preconditionClearData() {
+        FinanceMenuPage financeMenuPage = new FinanceMenuPage();
+        AccountsMainPage accountsMainPage = financeMenuPage.openAccountsMainPage();
+        accountsMainPage.deleteAllAccount();
+    }
+
+
+    @Test (groups = "Account")
+    @Story("Проверить добавление счета с типом: \"Безналичный рассчет\"")
+    @Description("Проверка, добавления счета, валюта грива, доступно поле для указания комиссии")
     public void a_1_createAccountNonCash() {
 
         account = Account.builder()
                 .nameAccount("Тест-2.Безналичный счет").typeAccount(configProperties.NONCASH_ACCOUNT()).currencyAccount("Гривна").balanceStart("2000")
                 .rateAcquiring("100").build();
-
-        addStepToTheReport("Выполнить переход на страницу  Финансы-> Счета");
-        AccountsMainPage accountsMainPage = financeMenuPage.openAccountsMainPage();
-        accountsMainPage.deleteAllAccount();
-
         addStepToTheReport("Добавить новый счет c типом: " + account.getTypeAccount());
         accountsMainPage.addNewAccount(account);
 
@@ -102,8 +116,9 @@ public class AccountsTest extends BaseTest {
     }
 
 
-    @Test
-    @Description("Проверить добавление с типом: \"Наличные\"")
+    @Test (groups = "Account")
+    @Story("Проверить добавление с типом: \"Наличные\"")
+    @Description("")
     public void a_2_createAccountCash() {
 
         account = Account.builder()
@@ -150,8 +165,8 @@ public class AccountsTest extends BaseTest {
     }
 
 
-    @Test
-    @Description("Проверить добавление счета с типом: \"Банковская карта\"")
+    @Test (groups = "Account")
+    @Story("Проверить добавление счета с типом: \"Банковская карта\"")
     public void a_3_createAccountCard() {
 
         account = Account.builder()
@@ -193,8 +208,8 @@ public class AccountsTest extends BaseTest {
     }
 
 
-    @Test
-    @Description("Проверить добавление счетов в одной валюте с разными типами")
+    @Test (groups = "Account")
+    @Story("Проверить добавление счетов в одной валюте с разными типами")
     public void a_4_createSameCurrencyAccounts() {
 
         addStepToTheReport("Добавить счета в одной валюте с разными типами ");
@@ -223,8 +238,8 @@ public class AccountsTest extends BaseTest {
     }
 
 
-    @Test
-    @Description("Проверить добавление счетов в разных валютах")
+    @Test (groups = "Account")
+    @Story("Проверить добавление счетов в разных валютах")
     public void a_5_createDifferentCurrencyAccounts() {
 
         addStepToTheReport("Выполнить переход на страницу  Финансы-> Счета");
@@ -259,8 +274,8 @@ public class AccountsTest extends BaseTest {
     }
 
 
-    @Test
-    @Description("Проверить редактирование счета, смена типа счета")
+    @Test (groups = "Account")
+    @Story("Проверить редактирование счета, смена типа счета")
     public void a_6_editAccount() {
 
         account = Account.builder()
@@ -306,11 +321,11 @@ public class AccountsTest extends BaseTest {
     }
 
 
-    @Test(dataProvider = "getDateAccountForTestDelete")
-    @Description("Проверить удаление счета")
+    @Test(dataProvider = "getDateAccountForTestDelete",
+            groups = "Account"
+    )
+    @Story("Проверить удаление счета")
     public void a_7_deleteAccountTest(Account account) {
-     //   addStepToTheReport("Выполнить переход на страницу  Финансы-> Счета");
-       // accountsMainPage = financeMenuPage.openAccountsMainPage();
 
         addStepToTheReport("Добавить новый счет c типом: " + account.getTypeAccount());
         accountsMainPage.addNewAccount(account);
@@ -332,9 +347,9 @@ public class AccountsTest extends BaseTest {
         );
     }
 
-    @Test
-    @Description("Проверить поиск договора, по типу счета, по сумме на счету, по названию счета")
-    public void a_8_qw() {
+    @Test(groups = "Account")
+    @Story("Проверить поиск договора, по типу счета, по сумме на счету, по названию счета")
+    public void a_8_quickSearchAccount() {
 
         addStepToTheReport("Добавить счета в одной валюте с разными типами ");
         List<Account> listAccount = new ArrayList<>();
@@ -344,14 +359,13 @@ public class AccountsTest extends BaseTest {
         listAccount.add(account1);
         Account  account2 = Account.builder()
                 .nameAccount("Второй счет").typeAccount(configProperties.BANK_CARD()).currencyAccount("Евро").balanceStart("1500").build();
-        listAccount.add(account1);
+        listAccount.add(account2);
         Account  account3 = Account.builder()
                 .nameAccount("Третий счет").typeAccount(configProperties.BANK_CARD()).currencyAccount("Гривна").balanceStart("1500").build();
-
-        listAccount.add(account1);
+        listAccount.add(account3);
         accountsMainPage.addNewAccountList(listAccount);
         accountsMainPage.searchAccount(account1.getNameAccount());
-        System.out.println("ddddddddddddd");
+        accountsMainPage.dataAccountFromTable("Первый счет");
     }
 
 }
